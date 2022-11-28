@@ -47,20 +47,28 @@ def get_poster():
         return create_config_file()
 
 
+def quit_was_selected(command):
+    return command == "quit"
+
+
+def process_command(command, poster):
+    if command[0] == "read":
+        print_message(command[1])
+    elif command[0] == "listall":
+        print_messages(print_all=True)
+    elif command[0] == "post":
+        dao.post_message(command[1], poster)
+
+
 def main():
     poster = get_poster()
     print_messages()
     while True:
-        full_command = input(">")
-        command = full_command.split(" ", 1)
-        if command[0] == "read":
-            print_message(command[1])
-        elif command[0] == "listall":
-            print_messages(print_all=True)
-        elif command[0] == "post":
-            dao.post_message(command[1], poster)
-        elif command[0] == "quit":
+        command_parts = input(">").split(" ", 1)
+        if quit_was_selected(command_parts[0]):
             break
+        else:
+            process_command(command_parts, poster)
 
 
 if __name__ == "__main__":
