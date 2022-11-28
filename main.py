@@ -1,8 +1,7 @@
 #!/usr/bin/python
-import textwrap
 import dao.messagedao as dao
-
-POSTER = ""
+import os.path
+import textwrap
 
 
 def pad_right(text, number_of_spaces):
@@ -25,7 +24,31 @@ def print_message(message_id):
     print(f"{msg[0][1]} {get_formatted_time(msg[0][2])}")
 
 
+def is_poster_configured():
+    return os.path.isfile(".msgconfig")
+
+
+def load_poster_from_config():
+    with open(".msgconfig", "r") as config:
+        return config.read()
+
+
+def create_config_file():
+    with open(".msgconfig", "w") as config:
+        poster = input("Enter your username: ")
+        config.write(poster)
+        return poster
+
+
+def get_poster():
+    if is_poster_configured():
+        return load_poster_from_config()
+    else:
+        return create_config_file()
+
+
 def main():
+    poster = get_poster()
     print_messages()
     while True:
         full_command = input(">")
@@ -35,7 +58,7 @@ def main():
         elif command[0] == "listall":
             print_messages(print_all=True)
         elif command[0] == "post":
-            dao.post_message(command[1], POSTER)
+            dao.post_message(command[1], poster)
         elif command[0] == "quit":
             break
 
