@@ -15,8 +15,8 @@ def get_formatted_time(unformatted_time, robust=False):
         return unformatted_time.strftime("%y %b %d %H:%M:%S")
 
 
-def print_messages(print_all=False):
-    messages = dao.get_messages(print_all)
+def print_messages(number_of_messages, print_all=False):
+    messages = dao.get_messages(number_of_messages, print_all)
     for message in messages:
         print(f"{message[0]} {pad_right(message[1], 39)} {pad_right(message[2], 12)} {get_formatted_time(message[3])}")
 
@@ -36,17 +36,18 @@ def is_poster_configured():
 
 def load_poster_from_config():
     with open(".msgconfig", "r") as config:
-        return config.read()
+        return config.read().split(",")
 
 
 def create_config_file():
     with open(".msgconfig", "w") as config:
         poster = input("Enter your username: ")
-        config.write(poster)
-        return poster
+        number_of_messages = input("Enter the number of messages to display: ")
+        config.write(f"{poster},{number_of_messages}")
+        return poster, number_of_messages
 
 
-def get_poster():
+def get_config_values():
     if is_poster_configured():
         return load_poster_from_config()
     else:
@@ -57,11 +58,11 @@ def quit_was_selected(command):
     return command == "quit" or command == "exit"
 
 
-def process_command(command, poster):
+def process_command(command, poster, number_of_messages):
     if command[0] == "read":
         print_message(command[1])
     elif command[0] == "listall":
-        print_messages(print_all=True)
+        print_messages(number_of_messages, print_all=True)
     elif command[0] == "post":
         dao.post_message(command[1], poster)
     else:
@@ -69,14 +70,14 @@ def process_command(command, poster):
 
 
 def main():
-    poster = get_poster()
-    print_messages()
+    poster, number_of_messages = get_config_values()
+    print_messages(number_of_messages)
     while True:
         command_parts = input(">").split(" ", 1)
         if quit_was_selected(command_parts[0]):
             break
         else:
-            process_command(command_parts, poster)
+            process_command(command_parts, poster, number_of_messages)
 
 
 if __name__ == "__main__":

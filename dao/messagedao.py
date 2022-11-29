@@ -4,23 +4,23 @@ import uuid
 
 
 
-def get_query_for_get_message(get_all):
+def get_query_for_get_message(number_of_messages, get_all):
     if get_all:
         return "SELECT messageuid, SUBSTRING(message, 1, 39), poster, postedat FROM messageboard.messageboard \
                 ORDER BY postedat;"
     else:
-        return "SELECT * FROM (SELECT messageuid, SUBSTRING(message, 1, 39), poster, postedat \
-                               FROM messageboard.messageboard ORDER BY postedat DESC LIMIT 20) AS Q \
-                               ORDER BY Q.postedat ASC;"
+        return f"SELECT * FROM (SELECT messageuid, SUBSTRING(message, 1, 39), poster, postedat \
+                                FROM messageboard.messageboard ORDER BY postedat DESC LIMIT {number_of_messages}) AS Q \
+                                ORDER BY Q.postedat ASC;"
 
 
-def get_messages(get_all=False):
+def get_messages(number_of_messages, get_all=False):
     conn = None
     cur = None
     try:
         conn = psycopg2.connect(database=DATABASE, user=USER, password=PASSWORD, host=HOST, port=PORT)
         cur = conn.cursor()
-        cur.execute(get_query_for_get_message(get_all))
+        cur.execute(get_query_for_get_message(number_of_messages, get_all))
         return cur.fetchall()
     except Exception as e:
         print(e)
