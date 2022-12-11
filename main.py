@@ -1,9 +1,17 @@
 #!/usr/bin/python
 from datetime import datetime
+from enum import Enum
 
 import dao.sqlitedao as dao
 import os.path
 import textwrap
+
+
+class MessageFields(Enum):
+    ID = 0
+    MESSAGE = 1
+    POSTER = 2
+    POSTED_AT = 3
 
 
 def pad_right(text, number_of_spaces):
@@ -18,7 +26,10 @@ def formatted_time_from_unix_time(unix_time, robust=False):
 def print_messages(number_of_messages, print_all=False):
     messages = dao.get_messages(number_of_messages, print_all)
     for message in messages:
-        print(f"{message[0]} {pad_right(message[1], 39)} {pad_right(message[2], 12)} {formatted_time_from_unix_time(message[3])}")
+        print(f"{message[MessageFields.ID.value]} "
+              f"{pad_right(message[MessageFields.MESSAGE.value], 39)} "
+              f"{pad_right(message[MessageFields.POSTER.value], 12)} "
+              f"{formatted_time_from_unix_time(message[MessageFields.POSTED_AT.value])}")
 
 
 def print_message(message_id):
