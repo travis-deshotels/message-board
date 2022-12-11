@@ -1,5 +1,7 @@
 #!/usr/bin/python
-import dao.messagedao as dao
+from datetime import datetime
+
+import dao.sqlitedao as dao
 import os.path
 import textwrap
 
@@ -8,17 +10,15 @@ def pad_right(text, number_of_spaces):
     return text + " " * (number_of_spaces - len(text))
 
 
-def get_formatted_time(unformatted_time, robust=False):
-    if robust:
-        return unformatted_time.strftime("%B %d, %Y %H:%M:%S")
-    else:
-        return unformatted_time.strftime("%y %b %d %H:%M:%S")
+def formatted_time_from_unix_time(unix_time, robust=False):
+    date_format = "%B %d, %Y %H:%M:%S" if robust else "%y %b %d %H:%M:%S"
+    return datetime.utcfromtimestamp(unix_time).strftime(date_format)
 
 
 def print_messages(number_of_messages, print_all=False):
     messages = dao.get_messages(number_of_messages, print_all)
     for message in messages:
-        print(f"{message[0]} {pad_right(message[1], 39)} {pad_right(message[2], 12)} {get_formatted_time(message[3])}")
+        print(f"{message[0]} {pad_right(message[1], 39)} {pad_right(message[2], 12)} {formatted_time_from_unix_time(message[3])}")
 
 
 def print_message(message_id):
@@ -27,7 +27,7 @@ def print_message(message_id):
         print("No message matched the message id")
     else:
         print(textwrap.fill(msg[0], 80))
-        print(f"{msg[1]} {get_formatted_time(msg[2], robust=True)}")
+        print(f"{msg[1]} {formatted_time_from_unix_time(msg[2], robust=True)}")
 
 
 def is_poster_configured():
