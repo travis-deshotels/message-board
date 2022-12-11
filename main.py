@@ -26,8 +26,8 @@ def print_message(message_id):
     if len(msg) == 0:
         print("No message matched the message id")
     else:
-        print(textwrap.fill(msg[0][0], 80))
-        print(f"{msg[0][1]} {get_formatted_time(msg[0][2], robust=True)}")
+        print(textwrap.fill(msg[0], 80))
+        print(f"{msg[1]} {get_formatted_time(msg[2], robust=True)}")
 
 
 def is_poster_configured():
