@@ -78,6 +78,8 @@ def process_command(command, poster, number_of_messages):
         dao.post_message(command[1], poster)
     elif command[0] == "help":
         print("Commands are:\n listall\n read <message id>\n post <message>\n exit")
+    elif command[0] == "delete":
+        dao.post_message(f"Hey {poster}, you can't delete messages.", "the admin")
     else:
         print('Invalid command. Type "help" for available commands.')
 
