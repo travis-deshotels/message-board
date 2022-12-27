@@ -76,8 +76,10 @@ def process_command(command, poster, number_of_messages):
         print_messages(number_of_messages, print_all=True)
     elif command[0] == "post":
         dao.post_message(command[1], poster)
+    elif command[0] == "help":
+        print("Commands are:\n listall\n read <message id>\n post <message>\n exit")
     else:
-        print("Invalid command")
+        print('Invalid command. Type "help" for available commands.')
 
 
 def main():
