@@ -12,7 +12,7 @@ def pad_right(text, number_of_spaces):
 
 def formatted_time_from_unix_time(unix_time, robust=False):
     date_format = "%B %d, %Y %H:%M:%S" if robust else "%y %b %d %H:%M:%S"
-    return datetime.utcfromtimestamp(unix_time).strftime(date_format)
+    return datetime.utcfromtimestamp(int(unix_time)).strftime(date_format)
 
 
 def print_messages(number_of_messages, print_all=False):
