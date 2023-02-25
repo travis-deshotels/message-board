@@ -2,6 +2,27 @@ import sqlite3
 import uuid
 
 
+def dictionary_from_list(list_data):
+    response = []
+    for item in list_data:
+        message_item = {
+            'messageuid': item[0],
+            'message': item[1],
+            'poster': item[2],
+            'postedat': item[3]
+        }
+        response.append(message_item)
+    return response
+
+
+def dictionary_from_row(row):
+    return {
+        'message': row[0],
+        'poster': row[1],
+        'postedat': row[2]
+    }
+
+
 def get_query_for_get_message(number_of_messages, get_all):
     if get_all:
         return "SELECT messageuid, SUBSTRING(message, 1, 39), poster, postedat FROM messageboard \
@@ -19,7 +40,7 @@ def get_messages(number_of_messages, get_all=False):
         conn = sqlite3.connect('D:/messageboard.db')
         cur = conn.cursor()
         cur.execute(get_query_for_get_message(number_of_messages, get_all))
-        return cur.fetchall()
+        return dictionary_from_list(cur.fetchall())
     except Exception as e:
         print(e)
     finally:
@@ -37,7 +58,7 @@ def get_message(message_id):
         query = "SELECT message, poster, postedat FROM messageboard WHERE messageuid = ?"
         cur = conn.cursor()
         cur.execute(query, (message_id,))
-        return cur.fetchone()
+        return dictionary_from_row(cur.fetchone())
     except Exception as e:
         print(e)
     finally:

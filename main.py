@@ -1,17 +1,9 @@
 #!/usr/bin/python
 from datetime import datetime
-from enum import Enum
 
 import dao.sqlitedao as dao
 import os.path
 import textwrap
-
-
-class MessageFields(Enum):
-    ID = 0
-    MESSAGE = 1
-    POSTER = 2
-    POSTED_AT = 3
 
 
 def pad_right(text, number_of_spaces):
@@ -26,10 +18,10 @@ def formatted_time_from_unix_time(unix_time, robust=False):
 def print_messages(number_of_messages, print_all=False):
     messages = dao.get_messages(number_of_messages, print_all)
     for message in messages:
-        print(f"{message[MessageFields.ID.value]} "
-              f"{pad_right(message[MessageFields.MESSAGE.value], 39)} "
-              f"{pad_right(message[MessageFields.POSTER.value], 12)} "
-              f"{formatted_time_from_unix_time(message[MessageFields.POSTED_AT.value])}")
+        print(f"{message['messageuid']} "
+              f"{pad_right(message['message'], 39)} "
+              f"{pad_right(message['poster'], 12)} "
+              f"{formatted_time_from_unix_time(message['postedat'])}")
 
 
 def print_message(message_id):
@@ -37,8 +29,8 @@ def print_message(message_id):
     if len(msg) == 0:
         print("No message matched the message id")
     else:
-        print(textwrap.fill(msg[0], 80))
-        print(f"{msg[1]} {formatted_time_from_unix_time(msg[2], robust=True)}")
+        print(textwrap.fill(msg['message'], 80))
+        print(f"{msg['poster']} {formatted_time_from_unix_time(msg['postedat'], robust=True)}")
 
 
 def is_poster_configured():
