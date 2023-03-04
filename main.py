@@ -1,7 +1,7 @@
 #!/usr/bin/python
 from datetime import datetime
 
-import dao.sqlitedao as dao
+import dao.dynamodao as dao
 import os.path
 import textwrap
 
@@ -18,19 +18,19 @@ def formatted_time_from_unix_time(unix_time, robust=False):
 def print_messages(number_of_messages, print_all=False):
     messages = dao.get_messages(number_of_messages, print_all)
     for message in messages:
-        print(f"{message['messageuid']} "
-              f"{pad_right(message['message'], 39)} "
-              f"{pad_right(message['poster'], 12)} "
-              f"{formatted_time_from_unix_time(message['postedat'])}")
+        print(f"{message.message_id} "
+              f"{pad_right(message.message_text, 39)} "
+              f"{pad_right(message.message_poster, 12)} "
+              f"{message.message_posted_at}")
 
 
 def print_message(message_id):
     msg = dao.get_message(message_id)
-    if len(msg) == 0:
+    if msg is None:
         print("No message matched the message id")
     else:
-        print(textwrap.fill(msg['message'], 80))
-        print(f"{msg['poster']} {formatted_time_from_unix_time(msg['postedat'], robust=True)}")
+        print(textwrap.fill(msg.message_text, 80))
+        print(f"{msg.message_poster} {msg.message_posted_at}")
 
 
 def is_poster_configured():

@@ -1,58 +1,59 @@
+import datetime
+
 import boto3
 import uuid
-import time
 
-from boto3.dynamodb.conditions import Attr
+from dto.message import DynamoMessage
+from boto3.dynamodb.conditions import Key
 
 db_resource = boto3.resource('dynamodb', region_name='us-east-1', endpoint_url='http://localhost:8000')
 table = db_resource.Table('message')
-text_table = db_resource.Table('message_text')
+dynamo_message = DynamoMessage()
 
 
-def get_messages(days_of_messages, get_all=False):
-    current_time = int(time.time())
-    one_day = 86400
-
-    if get_all:
-        response = table.scan()
-    else:
-        response = table.scan(FilterExpression=Attr('postedat').lt(current_time) &
-                                               Attr('postedat').gt(current_time - (int(days_of_messages) * one_day)))
+def get_all_messages():
+    response = table.scan()
     data = response['Items']
     while 'LastEvaluatedKey' in response:
         response = table.scan(ExclusiveStartKey=response['LastEvaluatedKey'])
         data.extend(response['Items'])
 
-    return data
+    # TODO fix sorting return data.sort(key=sort_func)
+    return dynamo_message.get_messages(data)
+
+
+def get_messages(days_of_messages, get_all=False):
+    if get_all:
+        return get_all_messages()
+    else:
+        response = table.query(
+            KeyConditionExpression=Key('messageDate').eq(str(datetime.date.today() - datetime.timedelta(1)))
+        )
+        data = response['Items']
+        while 'LastEvaluatedKey' in response:
+            response = table.scan(ExclusiveStartKey=response['LastEvaluatedKey'])
+            data.extend(response['Items'])
+
+        return dynamo_message.get_messages(data)
 
 
 def get_message(message_id):
-    response_text_table = text_table.get_item(Key={
-        'messageuid': message_id
-    })
-    message_text = response_text_table['Item']['message']
-    response = table.get_item(Key={
-        'messageuid': message_id
-    })
-    response['Item']['message'] = message_text
+    response = table.query(
+        KeyConditionExpression=Key('messageUID').eq(message_id),
+        IndexName='messageUID-index'
+    )
 
-    return response['Item']
+    return dynamo_message.get_message(response['Items'][0]) if response['Items'] else None
 
 
 def post_message(message, poster):
-    message_uid = str(uuid.uuid4())[:8]
     table.put_item(
         Item={
-            'messageuid': message_uid,
-            'postedat': int(time.time()),
-            'message': message[0:39],
-            'poster': poster
-        }
-    )
-    text_table.put_item(
-        Item={
-            'messageuid': message_uid,
+            'messageUID': str(uuid.uuid4())[:8],
+            'messageDate': str(datetime.date.today()),
+            'messageTime': str(datetime.datetime.now().time()),
             'message': message,
+            'poster': poster
         }
     )
 
@@ -63,16 +64,20 @@ def setup():
         TableName='message',
         KeySchema=[
             {
-                'AttributeName': 'messageuid',
+                'AttributeName': 'messageDate',
                 'KeyType': 'HASH'
+            },
+            {
+                'AttributeName': 'messageTime',
+                'KeyType': 'RANGE'
             }
         ],
         GlobalSecondaryIndexes=[
             {
-                'IndexName': 'postedat-index',
+                'IndexName': 'messageUID-index',
                 'KeySchema': [
                     {
-                        'AttributeName': 'postedat',
+                        'AttributeName': 'messageUID',
                         'KeyType': 'HASH'
                     }
                 ],
@@ -87,32 +92,15 @@ def setup():
         ],
         AttributeDefinitions=[
             {
-                'AttributeName': 'messageuid',
+                'AttributeName': 'messageDate',
                 'AttributeType': 'S'
             },
             {
-                'AttributeName': 'postedat',
-                'AttributeType': 'N'
+                'AttributeName': 'messageTime',
+                'AttributeType': 'S'
             },
-        ],
-        ProvisionedThroughput={
-            'ReadCapacityUnits': 10,
-            'WriteCapacityUnits': 10
-        }
-    )
-
-    db.create_table(
-        TableName='message_text',
-        KeySchema=[
             {
-                'AttributeName': 'messageuid',
-                'KeyType': 'HASH'
-            }
-        ],
-
-        AttributeDefinitions=[
-            {
-                'AttributeName': 'messageuid',
+                'AttributeName': 'messageUID',
                 'AttributeType': 'S'
             }
         ],
