@@ -4,7 +4,7 @@ import uuid
 from dto.message import SqliteMessage
 
 sqlite_message = SqliteMessage()
-db_file = 'D:/messageboard.db'
+db_file = '/usr/app/data/messageboard.db'
 
 def get_query_for_get_message(number_of_messages, get_all):
     if get_all:
